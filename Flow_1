@@ -1,0 +1,75 @@
+
+start:
+  // To display simple text, simply write:
+  say "Bem-vindo(a) ao bot teste de documentos! 👋"
+  say Wait(1000)
+  say Typing(500)
+  say "Fui criado em 2022 por um estagiário aprendendo a mexer no CSML.
+  Minha finalidade, teoricamente, é de armazenagem de documentos utilizando API do CSML."
+  say Image("https://media.giphy.com/media/3oz8xZMZox78ZbWbFC/giphy.gif")
+  say Wait(1000)
+  say Typing(500)
+  remember next_step = "name"
+  goto go
+
+fn send_doc(doc){
+
+  
+}
+// Solicitar nome do user
+name:
+  say "Digite seu nome sem abreviação"
+  hold
+  remember user_name = event
+  remember user_short = user_name.split(" ")[0]
+  goto birthday
+
+// Solicitar aniversário do user
+birthday:
+  say "E qual sua data de nascimento?"
+  hold
+  remember user_birth = event
+  goto welcome
+
+// Boas-vindas
+welcome:
+  say "Prazer, {{user_short}}"
+  remember next_step = "doc_request"
+  goto go
+
+go:
+  say "Envie 'Ir' para continuar"
+  hold
+  if(event != "Ir") {
+    say "Desculpe, não entendi."
+    goto go
+  }
+  else goto $next_step
+
+doc_request:
+  say "Me envie um documento"
+  hold
+  goto doc_validation
+
+doc_validation:
+  say event.get_type()
+  remember file = event
+  do fields = {"Name": user_name, "Birthday": user_birth, "File": file}
+  do newRecord = App("airtable", method="createRecord", spreadsheet_id="appyQ6HYHERYRD3Dj", table_name="Bot_files", fields=fields)
+  goto finalizacao
+  say event
+  if(event.get_type() != "file"){
+    say "Documento não suportado" 
+    goto doc_request
+  }
+  else
+    say "Foi"
+    do fields = {"Name": user_name, "Birthday": user_birth, "File": event}
+    do newRecord = App("airtable", method="createRecord", spreadsheet_id="appyQ6HYHERYRD3Dj", table_name="Bot_files", fields=fields)
+    goto finalizacao
+
+finalizacao:
+  say "Documento enviado, {{user_short}}"
+  hold
+  goto end
+
